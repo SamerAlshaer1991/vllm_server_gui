@@ -1,0 +1,30 @@
+# VLLM_Engine pinned requirements for the documented Ubuntu 24.04 / ARM64 /
+# NVIDIA GB10 / CUDA 13 server profile.
+#
+# Install inside /opt/ai/.venv after creating the venv and upgrading
+# pip / setuptools / wheel / uv.
+#
+# This file includes both the GUI packages and the runtime stack used on the
+# documented server. If you move to another architecture or CUDA version,
+# update the CUDA wheels below accordingly.
+
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# GUI application dependencies
+Jinja2==3.1.6
+Markdown==3.10.2
+python-dotenv==1.2.2
+
+# Packaging helper used by setup/tooling and required by parts of the stack
+packaging==26.1
+
+# Distributed runtime
+ray==2.55.1
+
+# CUDA 13 PyTorch stack
+torch==2.10.0+cu130
+torchvision==0.25.0+cu130
+torchaudio==2.10.0+cu130
+
+# vLLM CUDA 13 wheel pinned for Linux ARM64 / aarch64
+https://github.com/vllm-project/vllm/releases/download/v0.19.1/vllm-0.19.1+cu130-cp38-abi3-manylinux_2_35_aarch64.whl

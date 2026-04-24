@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/workspace.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <p class="brand-kicker">Python GUI</p>
+          <h1>VLLM_Engine</h1>
+          <p class="brand-copy">
+            A local-help-synced workspace for building, saving, and running `vllm serve`.
+          </p>
+        </div>
+
+        <div class="sidebar-card">
+          <p class="eyebrow">Profiles</p>
+          <label class="sidebar-field">
+            <span>Profile name</span>
+            <input id="profile-name" type="text" placeholder="{{ bootstrap.profile_placeholder }}" />
+          </label>
+          <div class="sidebar-actions">
+            <button type="button" class="primary-button" id="save-profile">Save profile</button>
+          </div>
+          <div id="profile-empty" class="sidebar-note">No saved profiles yet.</div>
+          <div id="profile-list" class="profile-list"></div>
+        </div>
+
+        <div class="sidebar-card">
+          <p class="eyebrow">Backend Env</p>
+          <p class="sidebar-note">
+            Loaded from <code>{{ bootstrap.env_summary.env_path }}</code>
+          </p>
+          <div class="sidebar-metadata">
+            <span><strong>Project</strong> {{ bootstrap.env_summary.project_root }}</span>
+            <span><strong>Venv</strong> {{ bootstrap.env_summary.env_prefix }}</span>
+            <span><strong>Logs</strong> {{ bootstrap.env_summary.logs_dir }}</span>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <p class="eyebrow">Maintenance</p>
+          <div class="sidebar-actions">
+            <button type="button" class="ghost-button" id="sync-args">Sync arguments</button>
+            <button type="button" class="ghost-button" id="clear-logs">Clear logs</button>
+          </div>
+          <p class="sidebar-note">
+            Current schema generated at <code>{{ bootstrap.schema_generated_at }}</code>
+          </p>
+          <p class="sidebar-note">
+            Sync reloads the local `vllm serve --help=all` schema. Clear logs removes files from
+            <code>{{ bootstrap.env_summary.logs_dir }}</code>.
+          </p>
+        </div>
+
+        <div class="sidebar-card">
+          <p class="eyebrow">Sources</p>
+          <div class="source-list">
+            {% for source in source_urls %}
+            <a href="{{ source.url }}" target="_blank" rel="noreferrer">{{ source.label }}</a>
+            {% endfor %}
+          </div>
+          <p class="sidebar-note">
+            The local schema is generated from `vllm serve --help=all` so the UI follows your installed CLI.
+          </p>
+        </div>
+      </aside>
+
+      <main class="content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <script id="bootstrap-data" type="application/json">
+      {{ bootstrap | tojson }}
+    </script>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

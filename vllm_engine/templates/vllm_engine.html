@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="hero-kicker">{{ command_display }}</p>
+    <h2>{{ page_title }}</h2>
+  </div>
+  <div class="hero-meta">
+    <div class="stat">
+      <span class="stat-label">Sections</span>
+      <strong>{{ schema.section_count }}</strong>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Available Args</span>
+      <strong>{{ schema.argument_count }}</strong>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Enabled Args</span>
+      <strong id="active-count">0</strong>
+    </div>
+  </div>
+</section>
+
+<div id="flash-banner" class="flash-banner" hidden></div>
+
+<section class="markdown-panel">
+  {{ schema.intro_html | safe }}
+</section>
+
+<section class="toolbar">
+  <label class="toolbar-field">
+    <span>Search args</span>
+    <input id="search-input" type="search" placeholder="Filter by flag, alias, section, or hint" />
+  </label>
+  <div class="toolbar-actions">
+    <button type="button" class="ghost-button" data-expand-all>Expand all</button>
+    <button type="button" class="ghost-button" data-collapse-all>Collapse all</button>
+  </div>
+</section>
+
+<section class="preview-panel">
+  <div class="preview-header">
+    <div>
+      <p class="eyebrow">Command Preview</p>
+      <h3>Generated `{{ command_display }}` command</h3>
+    </div>
+    <div class="toolbar-actions">
+      <button type="button" class="ghost-button" id="copy-command">Copy command</button>
+      <button type="button" class="primary-button" id="run-command">Run command</button>
+      <button type="button" class="ghost-button" id="stop-command">Stop process</button>
+    </div>
+  </div>
+  <pre id="command-preview">{{ bootstrap.command_preview }}</pre>
+  <div class="runtime-grid">
+    <div class="runtime-item">
+      <span class="stat-label">Status</span>
+      <strong id="runtime-state">{{ bootstrap.runtime.state }}</strong>
+    </div>
+    <div class="runtime-item">
+      <span class="stat-label">Running</span>
+      <strong id="runtime-command">{{ bootstrap.runtime.command_display or "n/a" }}</strong>
+    </div>
+    <div class="runtime-item">
+      <span class="stat-label">PID</span>
+      <strong id="runtime-pid">{{ bootstrap.runtime.pid or "n/a" }}</strong>
+    </div>
+    <div class="runtime-item runtime-item-wide">
+      <span class="stat-label">Log File</span>
+      <strong id="runtime-log">{{ bootstrap.runtime.log_path or "No log file yet." }}</strong>
+    </div>
+  </div>
+  <p class="runtime-message" id="runtime-message">{{ bootstrap.runtime.message }}</p>
+</section>
+
+{% if not sections %}
+<section class="markdown-panel">
+  <p>
+    This command does not currently expose any documented CLI flags on the referenced page.
+    You can still save profiles for the base command and run it from this page.
+  </p>
+</section>
+{% endif %}
+
+{% if sections %}
+<section class="sections">
+  {% for section in sections %}
+  <details class="section-card" data-section open>
+    <summary>
+      <div>
+        <p class="eyebrow">{{ loop.index }} / {{ sections | length }}</p>
+        <h3>{{ section.title }}</h3>
+      </div>
+      <span class="section-count">{{ section.args | length }} args</span>
+    </summary>
+
+    <div class="section-body">
+      <div class="markdown-panel compact">
+        {{ section.note_html | safe }}
+        <p class="section-doc-link">
+          <a href="{{ section.source_url }}" target="_blank" rel="noreferrer">Open this section in the docs</a>
+        </p>
+      </div>
+
+      <div class="section-actions">
+        <button type="button" class="ghost-button" data-select-section>Select section</button>
+        <button type="button" class="ghost-button" data-clear-section>Clear section</button>
+      </div>
+
+      <div class="arg-list">
+        {% for arg in section.args %}
+        <article
+          class="arg-card"
+          data-arg-card
+          data-key="{{ arg.key }}"
+          data-search="{{ arg.search_text }}"
+          data-control="{{ arg.control }}"
+          data-primary-flag="{{ arg.primary_flag }}"
+          data-true-flag="{{ arg.true_flag or '' }}"
+          data-false-flag="{{ arg.false_flag or '' }}"
+          data-positional="{% if arg.is_positional %}true{% else %}false{% endif %}"
+          data-multi="{% if arg.accepts_multiple %}true{% else %}false{% endif %}"
+          data-repeatable="{% if arg.repeatable %}true{% else %}false{% endif %}"
+        >
+          <div class="arg-header">
+            <label class="arg-toggle">
+              <input type="checkbox" data-enable />
+              <span>
+                <strong>{{ arg.label }}</strong>
+                {% if arg.aliases %}
+                <small>{{ arg.aliases | join(", ") }}</small>
+                {% endif %}
+              </span>
+            </label>
+            <a class="doc-link" href="{{ arg.source_url }}" target="_blank" rel="noreferrer">docs</a>
+          </div>
+
+          <div class="arg-meta">
+            <span class="chip">{{ arg.control }}</span>
+            {% if arg.is_positional %}
+            <span class="chip">positional</span>
+            {% endif %}
+            {% if arg.accepts_multiple %}
+            <span class="chip">multi-value</span>
+            {% endif %}
+            {% if arg.repeatable %}
+            <span class="chip">repeats flag</span>
+            {% endif %}
+            {% if arg.default %}
+            <span class="chip">
+              {% if arg.default | length > 48 %}
+              default available
+              {% else %}
+              default: {{ arg.default }}
+              {% endif %}
+            </span>
+            {% endif %}
+            {% if arg.choices %}
+            <span class="chip">{{ arg.choices | length }} choices</span>
+            {% endif %}
+          </div>
+
+          <div class="markdown-panel compact arg-help">
+            {{ arg.help_html | safe }}
+          </div>
+
+          <div class="arg-control">
+            {% if arg.control == "boolean" %}
+            <label>
+              <span>Value</span>
+              <select data-value-control data-initial-value="{{ arg.initial_value }}" disabled>
+                <option value="true" {% if arg.initial_value == "true" %}selected{% endif %}>true</option>
+                <option value="false" {% if arg.initial_value == "false" %}selected{% endif %}>false</option>
+              </select>
+            </label>
+            {% elif arg.control == "select" %}
+            <label>
+              <span>Value</span>
+              <select data-value-control data-initial-value="{{ arg.initial_value }}" disabled>
+                <option value="">Select a value</option>
+                {% for choice in arg.choices %}
+                <option value="{{ choice }}" {% if arg.initial_value == choice %}selected{% endif %}>{{ choice }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            {% elif arg.control == "textarea" %}
+            <label>
+              <span>Value</span>
+              <textarea
+                data-value-control
+                data-initial-value="{{ arg.initial_value }}"
+                disabled
+                rows="4"
+                placeholder="{{ arg.placeholder }}"
+              >{{ arg.initial_value }}</textarea>
+            </label>
+            {% else %}
+            <label>
+              <span>Value</span>
+              <input
+                data-value-control
+                data-initial-value="{{ arg.initial_value }}"
+                type="text"
+                disabled
+                value="{{ arg.initial_value }}"
+                placeholder="{{ arg.placeholder }}"
+              />
+            </label>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </details>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}
