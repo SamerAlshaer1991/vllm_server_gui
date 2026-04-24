@@ -29,6 +29,7 @@ The GUI provides:
 - `Copy command`, `Run command`, and `Stop process`
 - `Sync arguments` to rebuild the schema from the installed CLI
 - `Clear logs` to remove files from the runtime logs directory
+- `Clear scripts` to remove generated launch scripts from the runtime scripts directory
 - backend-only `.env` loading for paths, binaries, cache locations, and secrets
 
 ## Environment This README Targets
@@ -422,6 +423,10 @@ Behavior details:
 
 - if no vLLM process is running, all log files are removed
 - if a vLLM process is running, its active current log file is kept and other log files are removed
+
+### 6. Clear generated launch scripts
+
+`Clear scripts` deletes generated launch scripts from the `scripts/` directory so old run wrappers do not pile up over time.
 
 ## Test Presets
 

@@ -12,15 +12,17 @@ from .schema import clear_schema_cache, load_schema
 SYNC_SCRIPT = PROJECT_DIR / "tools" / "sync_engine_args.py"
 
 
-def clear_logs(*, active_log_path: str | None = None) -> dict[str, Any]:
-    env = load_backend_env()
-    paths = ensure_runtime_dirs(env)
-    logs_dir = paths["LOGS_DIR"]
-    active = Path(active_log_path).resolve() if active_log_path else None
+def _clear_files(
+    target_dir: Path,
+    *,
+    item_label: str,
+    active_path: str | None = None,
+) -> dict[str, Any]:
+    active = Path(active_path).resolve() if active_path else None
     deleted_count = 0
     skipped_active = False
 
-    for path in sorted(logs_dir.rglob("*"), reverse=True):
+    for path in sorted(target_dir.rglob("*"), reverse=True):
         if path.is_file():
             if active is not None and path.resolve() == active:
                 skipped_active = True
@@ -33,16 +35,35 @@ def clear_logs(*, active_log_path: str | None = None) -> dict[str, Any]:
             except OSError:
                 pass
 
-    message = f"Cleared {deleted_count} log file{'s' if deleted_count != 1 else ''}."
+    message = f"Cleared {deleted_count} {item_label}{'s' if deleted_count != 1 else ''}."
     if skipped_active:
-        message += " The active running log file was kept."
+        message += f" The active running {item_label} was kept."
     return {
         "ok": True,
         "message": message,
         "deleted_count": deleted_count,
         "skipped_active": skipped_active,
-        "logs_dir": str(logs_dir),
     }
+
+
+def clear_logs(*, active_log_path: str | None = None) -> dict[str, Any]:
+    env = load_backend_env()
+    paths = ensure_runtime_dirs(env)
+    result = _clear_files(
+        paths["LOGS_DIR"],
+        item_label="log file",
+        active_path=active_log_path,
+    )
+    result["logs_dir"] = str(paths["LOGS_DIR"])
+    return result
+
+
+def clear_scripts() -> dict[str, Any]:
+    env = load_backend_env()
+    paths = ensure_runtime_dirs(env)
+    result = _clear_files(paths["SCRIPTS_DIR"], item_label="script file")
+    result["scripts_dir"] = str(paths["SCRIPTS_DIR"])
+    return result
 
 
 def sync_arguments() -> dict[str, Any]:

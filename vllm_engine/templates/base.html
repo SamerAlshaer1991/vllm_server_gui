@@ -40,6 +40,7 @@
             <span><strong>Project</strong> {{ bootstrap.env_summary.project_root }}</span>
             <span><strong>Venv</strong> {{ bootstrap.env_summary.env_prefix }}</span>
             <span><strong>Logs</strong> {{ bootstrap.env_summary.logs_dir }}</span>
+            <span><strong>Scripts</strong> {{ bootstrap.env_summary.scripts_dir }}</span>
           </div>
         </div>
 
@@ -48,13 +49,15 @@
           <div class="sidebar-actions">
             <button type="button" class="ghost-button" id="sync-args">Sync arguments</button>
             <button type="button" class="ghost-button" id="clear-logs">Clear logs</button>
+            <button type="button" class="ghost-button" id="clear-scripts">Clear scripts</button>
           </div>
           <p class="sidebar-note">
             Current schema generated at <code>{{ bootstrap.schema_generated_at }}</code>
           </p>
           <p class="sidebar-note">
             Sync reloads the local `vllm serve --help=all` schema. Clear logs removes files from
-            <code>{{ bootstrap.env_summary.logs_dir }}</code>.
+            <code>{{ bootstrap.env_summary.logs_dir }}</code>. Clear scripts removes files from
+            <code>{{ bootstrap.env_summary.scripts_dir }}</code>.
           </p>
         </div>
 

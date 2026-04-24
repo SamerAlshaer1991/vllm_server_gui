@@ -13,7 +13,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from .commands import build_command_parts, format_command
 from .config import STATIC_DIR, TEMPLATE_DIR
 from .envfiles import backend_env_summary
-from .maintenance import clear_logs, sync_arguments
+from .maintenance import clear_logs, clear_scripts, sync_arguments
 from .pages import PAGES, build_page_context, resolve_page
 from .profiles import ProfileStore
 from .runtime import RuntimeManager
@@ -68,6 +68,9 @@ class AppHandler(BaseHTTPRequestHandler):
                 return
             if parsed.path == "/api/logs/clear":
                 self._handle_logs_clear()
+                return
+            if parsed.path == "/api/scripts/clear":
+                self._handle_scripts_clear()
                 return
             if parsed.path == "/api/schema/sync":
                 self._handle_schema_sync()
@@ -198,6 +201,10 @@ class AppHandler(BaseHTTPRequestHandler):
         result = clear_logs(
             active_log_path=runtime.get("log_path") if runtime.get("running") else None,
         )
+        self._respond_json(HTTPStatus.OK, result)
+
+    def _handle_scripts_clear(self) -> None:
+        result = clear_scripts()
         self._respond_json(HTTPStatus.OK, result)
 
     def _handle_schema_sync(self) -> None:

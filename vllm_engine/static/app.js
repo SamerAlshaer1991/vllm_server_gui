@@ -9,6 +9,7 @@ const runButton = document.querySelector("#run-command");
 const stopButton = document.querySelector("#stop-command");
 const syncArgsButton = document.querySelector("#sync-args");
 const clearLogsButton = document.querySelector("#clear-logs");
+const clearScriptsButton = document.querySelector("#clear-scripts");
 const expandAllButton = document.querySelector("[data-expand-all]");
 const collapseAllButton = document.querySelector("[data-collapse-all]");
 const flashBanner = document.querySelector("#flash-banner");
@@ -340,6 +341,23 @@ async function clearLogs() {
   }
 }
 
+async function clearScripts() {
+  if (!window.confirm("Delete all generated launch scripts in the scripts folder?")) {
+    return;
+  }
+  if (clearScriptsButton) {
+    clearScriptsButton.disabled = true;
+  }
+  try {
+    const data = await postJSON("/api/scripts/clear", {});
+    notify(data.message);
+  } finally {
+    if (clearScriptsButton) {
+      clearScriptsButton.disabled = false;
+    }
+  }
+}
+
 argCards.forEach((card) => {
   const toggle = card.querySelector("[data-enable]");
   const control = card.querySelector("[data-value-control]");
@@ -443,6 +461,16 @@ if (clearLogsButton) {
   clearLogsButton.addEventListener("click", async () => {
     try {
       await clearLogs();
+    } catch (error) {
+      notify(error.message, "error");
+    }
+  });
+}
+
+if (clearScriptsButton) {
+  clearScriptsButton.addEventListener("click", async () => {
+    try {
+      await clearScripts();
     } catch (error) {
       notify(error.message, "error");
     }
